@@ -1,0 +1,2 @@
+c:\users\czarny\documents\visual studio 2013\Projects\ReedSolomonImageEncoding\ReedSolomonImageEncoding\bin\Debug\ReedSolomonImageEncoding.exe.config
+C:\Users\Czarny\Documents\GitRepositories\ReedSolomonImageEncoding\ReedSolomonImageEncoding\ReedSolomonImageEncoding\bin\Debug\ReedSolomonImageEncoding.exe.config
