@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.Drawing.Imaging;
 
 namespace ReedSolomonImageEncoding
@@ -52,6 +53,32 @@ namespace ReedSolomonImageEncoding
         public static Bitmap OpenImage(string path)
         {
             return new Bitmap(path);
+        }
+
+        public static int Compare(Bitmap processedImage, Bitmap originalImage, out Bitmap diffImage)
+        {
+            var width = processedImage.Width;
+            var height = processedImage.Height;
+            diffImage = new Bitmap(width, height);
+
+            var diffCount = 0;
+            var eqColor = Color.White;
+            var neColor = Color.Red;
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    if (processedImage.GetPixel(x, y).Equals(originalImage.GetPixel(x, y)))
+                        diffImage.SetPixel(x, y, eqColor);
+                    else
+                    {
+                        diffImage.SetPixel(x, y, neColor);
+                        diffCount++;
+                    }
+                }
+            }
+
+            return diffCount;
         }
     }
 }

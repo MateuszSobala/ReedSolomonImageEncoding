@@ -20,6 +20,16 @@ namespace ReedSolomonImageEncoding
             _reedSolomonDecoder = new ReedSolomonDecoder(galoisField);
         }
 
+        public ReedSolomon(int correctionBytes)
+        {
+            var galoisField = GenericGF.QR_CODE_FIELD_256;
+            _messageLength = galoisField.Size;
+            _correctionLength = correctionBytes;
+            _informationLength = _messageLength - _correctionLength;
+            _reedSolomonEncoder = new ReedSolomonEncoder(galoisField);
+            _reedSolomonDecoder = new ReedSolomonDecoder(galoisField);
+        }
+
         public ReedSolomon(GenericGF galoisField, int correctionBytes)
         {
             _messageLength = galoisField.Size;
@@ -50,7 +60,7 @@ namespace ReedSolomonImageEncoding
                     tempData[j] = 0;
                 }
 
-                _reedSolomonEncoder.encode(tempData, 32);
+                _reedSolomonEncoder.encode(tempData, _correctionLength);
 
                 remainder = remainder >= (_informationLength - 1) ? (_messageLength - 1) : modifiedData.Length - processedBytes - 1;
 
@@ -72,7 +82,7 @@ namespace ReedSolomonImageEncoding
             {
                 var tempData = new int[(_messageLength - 1)];
 
-                var remainder = (modifiedData.Length - i < (_informationLength - 1)) ? modifiedData.Length - i : (_informationLength - 1);
+                var remainder = (modifiedData.Length - i < (_messageLength - 1)) ? modifiedData.Length - i : (_messageLength - 1);
 
                 for (var j = 0; j < remainder; j++)
                 {
@@ -81,7 +91,7 @@ namespace ReedSolomonImageEncoding
 
                 _reedSolomonDecoder.decode(tempData, _correctionLength);
 
-                if (remainder < tempData.Length)
+                if (remainder > (data.Length - processedBytes - 1))
                 {
                     remainder = (data.Length - processedBytes - 1);
                 }

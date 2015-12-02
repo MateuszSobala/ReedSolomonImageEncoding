@@ -15,9 +15,11 @@ namespace ReedSolomonImageEncoding
 
             for (var i = 0; i < byteArray.Length; i += blockSize - 1)
             {
+                var arrayRemainder = (byteArray.Length - i < blockSize - 1) ? byteArray.Length - i : blockSize - 1;
+
                 for (var j = 0; j < errorsCount; j++)
                 {
-                    byteArray[i + random.Next(blockSize - 1)] = random.Next(256);
+                    byteArray[i + random.Next(arrayRemainder)] = random.Next(256);
                 }
             }
         }
@@ -44,7 +46,7 @@ namespace ReedSolomonImageEncoding
                 throw new ArgumentOutOfRangeException("errorsPercentage", "Percentage of errors must be between 0 and 100!");
             }
 
-            var errorsCount = byteArray.Length*(errorsPercentage/100);
+            var errorsCount = byteArray.Length*errorsPercentage/100;
 
             FillInErrors(byteArray, errorsCount);
         }
