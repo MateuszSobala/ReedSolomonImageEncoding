@@ -4,7 +4,7 @@ namespace ReedSolomonImageEncoding
 {
     public static class ErrorProvider
     {
-        public static void FillInErrorsForEveryBlock(int[] byteArray, int errorsCount, int blockSize)
+        public static int FillInErrorsForEveryBlock(int[] byteArray, int errorsCount, int blockSize)
         {
             if (errorsCount > blockSize)
             {
@@ -22,9 +22,10 @@ namespace ReedSolomonImageEncoding
                     byteArray[i + random.Next(arrayRemainder)] = random.Next(256);
                 }
             }
+            return (int)(errorsCount * Math.Ceiling((decimal)byteArray.Length / blockSize));
         }
 
-        public static void FillInErrors(int[] byteArray, int errorsCount)
+        public static int FillInErrors(int[] byteArray, int errorsCount)
         {
             if (errorsCount > byteArray.Length)
             {
@@ -37,9 +38,10 @@ namespace ReedSolomonImageEncoding
             {
                 byteArray[random.Next(byteArray.Length)] = random.Next(256);
             }
+            return errorsCount;
         }
 
-        public static void FillInPercentageOfErrors(int[] byteArray, int errorsPercentage)
+        public static int FillInPercentageOfErrors(int[] byteArray, int errorsPercentage)
         {
             if (errorsPercentage < 0 || errorsPercentage > 100)
             {
@@ -49,15 +51,16 @@ namespace ReedSolomonImageEncoding
             var errorsCount = byteArray.Length*errorsPercentage/100;
 
             FillInErrors(byteArray, errorsCount);
+            return errorsCount;
         }
 
-        public static void FillInErrorsWithProbability(int[] byteArray, double probability)
+        public static int FillInErrorsWithProbability(int[] byteArray, double probability)
         {
             if (probability > 1 || probability < 0)
             {
                 throw new ArgumentOutOfRangeException("probability", "Probability must be between 0.0 and 1.0!");
             }
-
+            var errorsCount = 0;
             var random = new Random(Guid.NewGuid().GetHashCode());
 
             for (var i = 0; i < byteArray.Length; i++)
@@ -65,8 +68,11 @@ namespace ReedSolomonImageEncoding
                 if (random.NextDouble() <= probability)
                 {
                     byteArray[i] = random.Next(256);
+                    errorsCount++;
                 }
             }
+
+            return errorsCount;
         }
     }
 }

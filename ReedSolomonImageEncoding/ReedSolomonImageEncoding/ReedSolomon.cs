@@ -1,33 +1,40 @@
-﻿using ZXing.Common.ReedSolomon;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using ExtendedZxingReedSolomon;
+using ZXing.Common.ReedSolomon;
+using GenericGF = ZXing.Common.ReedSolomon.GenericGF;
 
 namespace ReedSolomonImageEncoding
 {
-    class ReedSolomon
+    public class ReedSolomon
     {
         private readonly int _messageLength;
         private readonly int _informationLength;
         private readonly int _correctionLength;
         private readonly ReedSolomonEncoder _reedSolomonEncoder;
         private readonly ReedSolomonDecoder _reedSolomonDecoder;
+        private readonly SimpleRSDecoder _simpleRsDecoder;
 
         public ReedSolomon()
         {
-            var galoisField = GenericGF.QR_CODE_FIELD_256;
+            var galoisField = GenericGF.DATA_MATRIX_FIELD_256;
             _messageLength = galoisField.Size;
             _correctionLength = 32;
             _informationLength = _messageLength - _correctionLength;
             _reedSolomonEncoder = new ReedSolomonEncoder(galoisField);
             _reedSolomonDecoder = new ReedSolomonDecoder(galoisField);
+            _simpleRsDecoder = new SimpleRSDecoder();
         }
 
         public ReedSolomon(int correctionBytes)
         {
-            var galoisField = GenericGF.QR_CODE_FIELD_256;
+            var galoisField = GenericGF.DATA_MATRIX_FIELD_256;
             _messageLength = galoisField.Size;
             _correctionLength = correctionBytes;
             _informationLength = _messageLength - _correctionLength;
             _reedSolomonEncoder = new ReedSolomonEncoder(galoisField);
             _reedSolomonDecoder = new ReedSolomonDecoder(galoisField);
+            _simpleRsDecoder = new SimpleRSDecoder();
         }
 
         public ReedSolomon(GenericGF galoisField, int correctionBytes)
@@ -37,18 +44,19 @@ namespace ReedSolomonImageEncoding
             _informationLength = _messageLength - _correctionLength;
             _reedSolomonEncoder = new ReedSolomonEncoder(galoisField);
             _reedSolomonDecoder = new ReedSolomonDecoder(galoisField);
+            _simpleRsDecoder = new SimpleRSDecoder();
         }
 
         public int[] EncodeRawBytesArray(int[] data)
         {
-            var modifiedData = new int[data.Length * (_messageLength - 1) / (_informationLength - 1)];
+            var modifiedData = new int[data.Length * _messageLength / _informationLength];
             var processedBytes = 0;
 
-            for (var i = 0; i < data.Length; i += (_informationLength - 1))
+            for (var i = 0; i < data.Length; i += _informationLength)
             {
-                var tempData = new int[(_messageLength - 1)];
+                var tempData = new int[_messageLength];
 
-                var remainder = (data.Length - i < (_informationLength - 1)) ? data.Length - i : (_informationLength - 1);
+                var remainder = (data.Length - i < _informationLength) ? data.Length - i : _informationLength;
 
                 for (var j = 0; j < remainder; j++)
                 {
@@ -62,13 +70,13 @@ namespace ReedSolomonImageEncoding
 
                 _reedSolomonEncoder.encode(tempData, _correctionLength);
 
-                remainder = remainder >= (_informationLength - 1) ? (_messageLength - 1) : modifiedData.Length - processedBytes - 1;
+                remainder = remainder >= _informationLength ? _messageLength : modifiedData.Length - processedBytes;
 
                 for (var j = 0; j < remainder; j++)
                 {
                     modifiedData[processedBytes + j] = tempData[j];
                 }
-                processedBytes += (_messageLength - 1);
+                processedBytes += _messageLength;
             }
 
             return modifiedData;
@@ -78,11 +86,11 @@ namespace ReedSolomonImageEncoding
         {
             var processedBytes = 0;
 
-            for (var i = 0; i < modifiedData.Length; i += (_messageLength - 1))
+            for (var i = 0; i < modifiedData.Length; i += _messageLength)
             {
-                var tempData = new int[(_messageLength - 1)];
+                var tempData = new int[_messageLength];
 
-                var remainder = (modifiedData.Length - i < (_messageLength - 1)) ? modifiedData.Length - i : (_messageLength - 1);
+                var remainder = (modifiedData.Length - i < _messageLength) ? modifiedData.Length - i : _messageLength;
 
                 for (var j = 0; j < remainder; j++)
                 {
@@ -91,16 +99,70 @@ namespace ReedSolomonImageEncoding
 
                 _reedSolomonDecoder.decode(tempData, _correctionLength);
 
-                if (remainder > (data.Length - processedBytes - 1))
-                {
-                    remainder = (data.Length - processedBytes - 1);
-                }
+                remainder = remainder >= (data.Length - processedBytes)
+                    ? (data.Length - processedBytes)
+                    : _informationLength;
 
                 for (var j = 0; j < remainder; j++)
                 {
                     data[processedBytes + j] = tempData[j];
                 }
-                processedBytes += (_informationLength - 1);
+                processedBytes += _informationLength;
+            }
+        }
+
+        public void SimplyDecodeRawBytesArray(int[] modifiedData, int[] data)
+        {
+            var processedBytes = 0;
+
+            /*Parallel.For(0, modifiedData.Length, index =>
+            {
+                var tempData = new int[_messageLength];
+
+                var remainder = (modifiedData.Length - index < _messageLength)
+                    ? modifiedData.Length - index
+                    : _messageLength;
+
+                for (var j = 0; j < remainder; j++)
+                {
+                    tempData[j] = modifiedData[index + j];
+                }
+
+                var simpleRsDecoder = new SimpleRSDecoder();
+                simpleRsDecoder.Decode(tempData, _correctionLength);
+
+                remainder = remainder >= (data.Length - processedBytes)
+                    ? (data.Length - processedBytes)
+                    : _informationLength;
+
+                for (var j = 0; j < remainder; j++)
+                {
+                    data[processedBytes + j] = tempData[j];
+                }
+                Interlocked.Add(ref processedBytes, _informationLength);
+            });*/
+            for (var i = 0; i < modifiedData.Length; i += _messageLength)
+            {
+                var tempData = new int[_messageLength];
+
+                var remainder = (modifiedData.Length - i < _messageLength) ? modifiedData.Length - i : _messageLength;
+
+                for (var j = 0; j < remainder; j++)
+                {
+                    tempData[j] = modifiedData[i + j];
+                }
+
+                _simpleRsDecoder.Decode(tempData, _correctionLength);
+
+                remainder = remainder >= (data.Length - processedBytes)
+                    ? (data.Length - processedBytes)
+                    : _informationLength;
+
+                for (var j = 0; j < remainder; j++)
+                {
+                    data[processedBytes + j] = tempData[j];
+                }
+                processedBytes += _informationLength;
             }
         }
     }

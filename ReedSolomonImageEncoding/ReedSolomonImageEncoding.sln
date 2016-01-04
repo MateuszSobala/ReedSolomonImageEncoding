@@ -5,6 +5,10 @@ VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReedSolomonImageEncoding", "ReedSolomonImageEncoding\ReedSolomonImageEncoding.csproj", "{AD2B56BE-9D6F-4C59-8210-F232286CA913}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExtendedZxingReedSolomon", "ExtendedZxingReedSolomon\ExtendedZxingReedSolomon.csproj", "{43069153-C814-49B2-96C8-77B8D64760CE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{1DE30ADF-23C0-4ACE-AA66-81A4430A954C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{AD2B56BE-9D6F-4C59-8210-F232286CA913}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AD2B56BE-9D6F-4C59-8210-F232286CA913}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AD2B56BE-9D6F-4C59-8210-F232286CA913}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43069153-C814-49B2-96C8-77B8D64760CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43069153-C814-49B2-96C8-77B8D64760CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43069153-C814-49B2-96C8-77B8D64760CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43069153-C814-49B2-96C8-77B8D64760CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1DE30ADF-23C0-4ACE-AA66-81A4430A954C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1DE30ADF-23C0-4ACE-AA66-81A4430A954C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1DE30ADF-23C0-4ACE-AA66-81A4430A954C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1DE30ADF-23C0-4ACE-AA66-81A4430A954C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -12,6 +12,7 @@ namespace ReedSolomonImageEncoding
     {
         private Bitmap _originalImage;
         private Bitmap _processedImage;
+        private Bitmap _processedSimpleImage;
         private string _fileName;
         private ErrorMeasure _errorMeasure = ErrorMeasure.ErrorPercentage;
 
@@ -29,6 +30,11 @@ namespace ReedSolomonImageEncoding
             label8.Visible = false;
             label9.Visible = false;
             label10.Visible = false;
+
+            pictureBox4.Visible = false;
+            label11.Visible = false;
+            label12.Visible = false;
+            label15.Visible = false;
         }
 
         private void radioButton1_CheckedChanged(object sender, EventArgs e)
@@ -119,10 +125,10 @@ namespace ReedSolomonImageEncoding
             pictureBox2.Image = _processedImage;
 
             var comparisonText = new StringBuilder();
-            Bitmap diffImage = null;
+            Bitmap diffImage;
 
             var diffCount = ImageProcessing.Compare(_processedImage, _originalImage, out diffImage);
-            if (diffCount < 100)
+            if (diffCount < 10)
             {
                 comparisonText.Append("Obrazki są identyczne.");
                 pictureBox3.Visible = false;
@@ -143,8 +149,7 @@ namespace ReedSolomonImageEncoding
             }
 
             label10.Text = comparisonText.ToString();
-            label10.Visible = true;
-
+            label10.Visible = true;   
         }
 
         private bool ValidateUserInputs()
@@ -178,34 +183,135 @@ namespace ReedSolomonImageEncoding
             var reedSolomon = new ReedSolomon(correctionBytes);
             var modifiedData = reedSolomon.EncodeRawBytesArray(data);
 
-            SimulateTransmissionWithErrors(modifiedData);
+            textBox6.Text = SimulateTransmissionWithErrors(modifiedData).ToString();
 
             reedSolomon.DecodeRawBytesArray(modifiedData, data);
 
             _processedImage = ImageProcessing.GetRGBImageFromRawBytes(_originalImage, data);
         }
 
-        private void SimulateTransmissionWithErrors(int[] data)
+        private void ProcessImageSimpleEncoding()
+        {
+            var data = ImageProcessing.GetRawBytesFromRGBImage(_originalImage);
+            var correctionBytes = int.Parse(textBox1.Text);
+
+            var reedSolomon = new ReedSolomon(correctionBytes);
+            var modifiedData = reedSolomon.EncodeRawBytesArray(data);
+
+            textBox7.Text = SimulateTransmissionWithErrors(modifiedData).ToString();
+
+            reedSolomon.SimplyDecodeRawBytesArray(modifiedData, data);
+
+            _processedSimpleImage = ImageProcessing.GetRGBImageFromRawBytes(_originalImage, data);
+        }
+
+        private int SimulateTransmissionWithErrors(int[] data)
         {
             var errorMeasureValue = double.Parse(textBox3.Text, CultureInfo.InvariantCulture);
             
             var blockSize = int.Parse(textBox2.Text);
 
+            var errorsCount = 0;
+
             switch (_errorMeasure)
             {
                 case ErrorMeasure.ErrorCount:
-                    ErrorProvider.FillInErrors(data, (int) errorMeasureValue);
+                    errorsCount = ErrorProvider.FillInErrors(data, (int)errorMeasureValue);
                     break;
                 case ErrorMeasure.ErrorPercentage:
-                    ErrorProvider.FillInPercentageOfErrors(data, (int) errorMeasureValue);
+                    errorsCount = ErrorProvider.FillInPercentageOfErrors(data, (int)errorMeasureValue);
                     break;
                 case ErrorMeasure.ErrorCountPerBlock:
-                    ErrorProvider.FillInErrorsForEveryBlock(data, (int) errorMeasureValue, blockSize);
+                    errorsCount = ErrorProvider.FillInErrorsForEveryBlock(data, (int)errorMeasureValue, blockSize);
                     break;
                 case ErrorMeasure.ErrorProbability:
-                    ErrorProvider.FillInErrorsWithProbability(data, errorMeasureValue);
+                    errorsCount = ErrorProvider.FillInErrorsWithProbability(data, errorMeasureValue);
                     break;
             }
+
+            return errorsCount;
+        }
+
+        private void label14_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label12_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void pictureBox4_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label13_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void pictureBox5_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label11_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            if (!ValidateUserInputs())
+                return;
+            var stopwatch = new Stopwatch();
+            stopwatch.Reset();
+            stopwatch.Start();
+            while (stopwatch.ElapsedMilliseconds < 1200)  // A Warmup of 1000-1500 mS 
+            // stabilizes the CPU cache and pipeline.
+            {
+                // Warmup
+            }
+            stopwatch.Stop();
+
+            stopwatch.Reset();
+            stopwatch.Start();
+
+            ProcessImageSimpleEncoding();
+
+            stopwatch.Stop();
+
+            textBox5.Text = stopwatch.ElapsedMilliseconds.ToString();
+
+            pictureBox5.Image = _processedSimpleImage;
+
+            var comparisonText = new StringBuilder();
+            Bitmap diffImage;
+            var diffCount = ImageProcessing.Compare(_processedSimpleImage, _originalImage, out diffImage);
+            if (diffCount < 10)
+            {
+                comparisonText.Append("Obrazki są identyczne.");
+                pictureBox4.Visible = false;
+                label11.Visible = false;
+                label12.Visible = false;
+            }
+            else
+            {
+                comparisonText.Append("Obrazki nie są identyczne. ");
+                comparisonText.Append("Różnią się ");
+                comparisonText.Append(diffCount);
+                comparisonText.Append(" pixelami.");
+
+                pictureBox4.Image = diffImage;
+                pictureBox4.Visible = true;
+                label11.Visible = true;
+                label12.Visible = true;
+            }
+
+            label15.Text = comparisonText.ToString();
+            label15.Visible = true;
         }
     }
 }
