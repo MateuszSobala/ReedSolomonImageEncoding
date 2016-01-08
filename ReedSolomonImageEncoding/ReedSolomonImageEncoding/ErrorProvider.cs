@@ -13,13 +13,39 @@ namespace ReedSolomonImageEncoding
 
             var random = new Random(Guid.NewGuid().GetHashCode());
 
-            for (var i = 0; i < byteArray.Length; i += blockSize - 1)
+            for (var i = 0; i < byteArray.Length; i += blockSize)
             {
-                var arrayRemainder = (byteArray.Length - i < blockSize - 1) ? byteArray.Length - i : blockSize - 1;
+                var arrayRemainder = (byteArray.Length - i < blockSize) ? byteArray.Length - i : blockSize;
 
                 for (var j = 0; j < errorsCount; j++)
                 {
                     byteArray[i + random.Next(arrayRemainder)] = random.Next(256);
+                }
+            }
+            return (int)(errorsCount * Math.Ceiling((decimal)byteArray.Length / blockSize));
+        }
+
+        public static int FillInGroupErrorsForEveryBlock(int[] byteArray, int errorsCount, int blockSize)
+        {
+            if (errorsCount > blockSize)
+            {
+                throw new ArgumentOutOfRangeException("errorsCount", "Errors count must be less than block size!");
+            }
+
+            var random = new Random(Guid.NewGuid().GetHashCode());
+
+            for (var i = 0; i < byteArray.Length; i += blockSize)
+            {
+                var arrayRemainder = ((byteArray.Length - i < blockSize) ? byteArray.Length - i : blockSize) - errorsCount;
+
+                if (arrayRemainder < 0)
+                    break;
+
+                var groupStartIndex = random.Next(arrayRemainder);
+
+                for (var j = groupStartIndex; j < groupStartIndex+errorsCount; j++)
+                {
+                    byteArray[i + j] = random.Next(256);
                 }
             }
             return (int)(errorsCount * Math.Ceiling((decimal)byteArray.Length / blockSize));

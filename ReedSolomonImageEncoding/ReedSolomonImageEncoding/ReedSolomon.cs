@@ -49,7 +49,9 @@ namespace ReedSolomonImageEncoding
 
         public int[] EncodeRawBytesArray(int[] data)
         {
-            var modifiedData = new int[data.Length * _messageLength / _informationLength];
+            var length = data.Length*_messageLength/_informationLength;
+            length += 256 - (length%256);
+            var modifiedData = new int[length];
             var processedBytes = 0;
 
             for (var i = 0; i < data.Length; i += _informationLength)
@@ -115,32 +117,6 @@ namespace ReedSolomonImageEncoding
         {
             var processedBytes = 0;
 
-            /*Parallel.For(0, modifiedData.Length, index =>
-            {
-                var tempData = new int[_messageLength];
-
-                var remainder = (modifiedData.Length - index < _messageLength)
-                    ? modifiedData.Length - index
-                    : _messageLength;
-
-                for (var j = 0; j < remainder; j++)
-                {
-                    tempData[j] = modifiedData[index + j];
-                }
-
-                var simpleRsDecoder = new SimpleRSDecoder();
-                simpleRsDecoder.Decode(tempData, _correctionLength);
-
-                remainder = remainder >= (data.Length - processedBytes)
-                    ? (data.Length - processedBytes)
-                    : _informationLength;
-
-                for (var j = 0; j < remainder; j++)
-                {
-                    data[processedBytes + j] = tempData[j];
-                }
-                Interlocked.Add(ref processedBytes, _informationLength);
-            });*/
             for (var i = 0; i < modifiedData.Length; i += _messageLength)
             {
                 var tempData = new int[_messageLength];

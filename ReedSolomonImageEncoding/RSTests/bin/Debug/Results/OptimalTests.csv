@@ -1,0 +1,9 @@
+OrderNo;FileName;ErrorsValue;ErrorProviderType;CorrectionBytesCount;DecoderType;ProvidedErrorsCount;ErrorsAfterDecoding;Time [ms];FileSize
+3;lenaColor;0,01;ErrorsWithProbability;10;Extended;247;22;596;8100
+4;lenaColor;1;PercentageOfErrors;10;Extended;253;15;537;8100
+2;lenaColor;1;PercentageOfErrors;10;Simple;253;240;58165;8100
+1;lenaColor;0,01;ErrorsWithProbability;10;Simple;280;266;59818;8100
+3;lenaGray;0,01;ErrorsWithProbability;10;Extended;233;18;645;8100
+4;lenaGray;1;PercentageOfErrors;10;Extended;253;27;576;8100
+1;lenaGray;0,01;ErrorsWithProbability;10;Simple;224;213;57154;8100
+2;lenaGray;1;PercentageOfErrors;10;Simple;253;233;58483;8100

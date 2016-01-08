@@ -99,8 +99,16 @@ namespace ExtendedZxingReedSolomon
             if (temp.Length < count)
                 return true;
 
+            var zeros = 0;
+            for (int i = count; i < received.Length; i++)
+            {
+                if(received[i]>0)
+                    break;
+                zeros++;
+            }
+
             Array.Copy(temp, temp.Length - count, received, count > 1 ? 1 : 0, count > 1 ? count - 1 : count);
-            Array.Copy(temp, 0, received, count, temp.Length - count);
+            Array.Copy(temp, 0, received, count + zeros, temp.Length - count - zeros);
             if (count > 1)
                 received[0] = first;
 

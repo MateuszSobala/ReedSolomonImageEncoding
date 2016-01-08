@@ -1,5 +1,8 @@
 ﻿using ReedSolomonImageEncoding;
 using System;
+using System.Diagnostics;
+using System.Drawing;
+using System.IO;
 using ExtendedZxingReedSolomon;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -366,6 +369,35 @@ namespace UnitTests
                     }
                 }
             }
+        }
+
+        [TestMethod]
+        public void ImageDecodingTest()
+        {
+            Bitmap originalImage;
+            var fileStream = new FileStream(AppDomain.CurrentDomain.BaseDirectory + "/sandwich.bmp", FileMode.Open, FileAccess.Read);
+            using (fileStream)
+            {
+                originalImage = new Bitmap(fileStream);
+            }
+            fileStream.Close();
+
+            var reedSolomon = new ReedSolomon(24);
+            var data = ImageProcessing.GetRawBytesFromRGBImage(originalImage);
+
+            var modifiedData = reedSolomon.EncodeRawBytesArray(data);
+
+            var errorsCount = ErrorProvider.FillInPercentageOfErrors(modifiedData, 1);
+
+            reedSolomon.SimplyDecodeRawBytesArray(modifiedData, data);
+
+            var processedImage = ImageProcessing.GetRGBImageFromRawBytes(originalImage, data);
+
+            var diffCount = 0;
+            Bitmap diffImage;
+            diffCount = ImageProcessing.Compare(processedImage, originalImage, out diffImage);
+
+            Assert.IsTrue(diffCount <= errorsCount);
         }
     }
 }
