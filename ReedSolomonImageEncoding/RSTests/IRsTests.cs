@@ -23,11 +23,12 @@
         public ErrorProviderType RsErrorProviderType;
         public int OrderNo;
 
-        public Params(int errorMeasureValue, int correctionBytesCount, DecoderType rsDecoderType)
+        public Params(int errorMeasureValue, int correctionBytesCount, DecoderType rsDecoderType, int orderNo)
         {
             ErrorMeasureValue = errorMeasureValue;
             CorrectionBytesCount = correctionBytesCount;
             RsDecoderType = rsDecoderType;
+            OrderNo = orderNo;
         }
 
         public Params(int errorMeasureValue, int correctionBytesCount, DecoderType rsDecoderType, ErrorProviderType rsErrorProviderType)

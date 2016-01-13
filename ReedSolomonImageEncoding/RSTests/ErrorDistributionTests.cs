@@ -17,8 +17,8 @@ namespace RSTests
         private readonly IProducerConsumerCollection<IList<int>> _results = new ConcurrentQueue<IList<int>>();
         private readonly IList<string> _imageFileNames = new List<string>
         {
-            /*"sandwich",
-            "rgbImage",*/
+            "sandwich",
+            "rgbImage",
             "lenaColor",
             "lenaGray"
         };
@@ -30,12 +30,12 @@ namespace RSTests
         private readonly IList<Params> _paramses = new List<Params>();
         private readonly IList<int> _errorMeasureValues = new List<int>
         {
-            1/*, 2, 5, 10, 16, 20*/
+            1, 2, 5, 10, 16, 20
         };
 
         private readonly IList<int> _correctionBytesCounts = new List<int>
         {
-            10/*, 16, 24, 32, 40*/
+            10, 16, 24, 32, 40
         };
         private readonly IList<ErrorProviderType> _errorProviderTypes = new List<ErrorProviderType>
         {
@@ -129,12 +129,11 @@ namespace RSTests
                 }
                 catch (InvalidOperationException ioe)
                 {
-                }
-                finally
-                {
                     tries++;
                 }
             }
+            if (tries >= 5)
+                return;
 
             var image = (Bitmap)clonedImage;
             var stopwatch = new Stopwatch();

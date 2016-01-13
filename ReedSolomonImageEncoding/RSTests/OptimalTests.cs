@@ -16,8 +16,8 @@ namespace RSTests
         private readonly IProducerConsumerCollection<IList<int>> _results = new ConcurrentQueue<IList<int>>();
         private readonly IList<string> _imageFileNames = new List<string>
         {
-            /*"sandwich",
-            "rgbImage",*/
+            "sandwich",
+            "rgbImage",
             "lenaColor",
             "lenaGray"
         };
@@ -29,15 +29,15 @@ namespace RSTests
         private readonly IList<Params> _paramses = new List<Params>();
         private readonly IList<int> _errorMeasureValues = new List<int>
         {
-            1/*, 2, 5, 10, 16, 20*/
+            1, 2, 5, 10, 16, 20
         };
         private readonly IList<int> _errorMeasurePercentageValues = new List<int>
         {
-            1/*, 2, 5, 10*/
+            1, 2, 5, 10
         };
         private readonly IList<int> _correctionBytesCounts = new List<int>
         {
-            10/*, 16, 24, 32, 40*/
+            10, 16, 24, 32, 40
         };
         private readonly IList<ErrorProviderType> _errorProviderTypes = new List<ErrorProviderType>
         {
@@ -53,7 +53,7 @@ namespace RSTests
         public void Initialize()
         {
             var orderNo = 1;
-            /*foreach (var decoderType in Enum.GetValues(typeof(DecoderType)))
+            foreach (var decoderType in Enum.GetValues(typeof(DecoderType)))
             {
                 foreach (var errorProviderType in _errorProviderTypes)
                 {
@@ -72,7 +72,7 @@ namespace RSTests
                         }
                     }
                 }
-            }*/
+            }
 
             foreach (var decoderType in Enum.GetValues(typeof(DecoderType)))
             {
@@ -149,20 +149,19 @@ namespace RSTests
             var tries = 0;
 
             object clonedImage = null;
-            while (clonedImage == null && tries<5)
+            while (clonedImage == null && tries < 5)
             {
                 try
                 {
-                    clonedImage = iterator%2 == 0 ? _originalImage0.Clone() : _originalImage1.Clone();
+                    clonedImage = iterator % 2 == 0 ? _originalImage0.Clone() : _originalImage1.Clone();
                 }
                 catch (InvalidOperationException ioe)
-                {
-                }
-                finally
                 {
                     tries++;
                 }
             }
+            if (tries >= 5)
+                return;
             
             var image = (Bitmap)clonedImage;
             var stopwatch = new Stopwatch();

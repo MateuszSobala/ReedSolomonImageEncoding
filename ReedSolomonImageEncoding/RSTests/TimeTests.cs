@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ReedSolomonImageEncoding;
@@ -25,12 +23,14 @@ namespace RSTests
         private readonly IList<Params> _paramses = new List<Params>();
         private readonly IList<int> _errorMeasureValues = new List<int>
         {
-            1, 2/*, 5, 10*/
+            1, 2, 5, 10
         };
         private readonly IList<int> _correctionBytesCounts = new List<int>
         {
-            10, 16, 24/*, 32, 40*/
+            10, 16, 24, 32, 40
         };
+
+        private readonly int _fileSize;
 
         public TimeTests()
         {
@@ -38,6 +38,7 @@ namespace RSTests
             using (fileStream)
             {
                 _originalImage0 = new Bitmap(fileStream);
+                _fileSize = _originalImage0.Height * _originalImage0.Width;
             }
             fileStream.Close();
 
@@ -51,6 +52,7 @@ namespace RSTests
 
         public void Initialize()
         {
+            var orderNo = 1;
             foreach (var decoderType in Enum.GetValues(typeof(DecoderType)))
             {
                 foreach (var errorMeasureValue in _errorMeasureValues)
@@ -61,7 +63,8 @@ namespace RSTests
                             new Params(
                                 errorMeasureValue,
                                 correctionBytesCount,
-                                (DecoderType) decoderType)
+                                (DecoderType) decoderType,
+                                orderNo++)
                                 );
                     }
                 }
@@ -84,6 +87,7 @@ namespace RSTests
             var errorMeasureValue = parms.ErrorMeasureValue;
             var correctionBytesCount = parms.CorrectionBytesCount;
             var decoderType = parms.RsDecoderType;
+            var orderNo = parms.OrderNo;
 
             var tries = 0;
 
@@ -96,12 +100,11 @@ namespace RSTests
                 }
                 catch (InvalidOperationException ioe)
                 {
-                }
-                finally
-                {
                     tries++;
                 }
             }
+            if (tries >= 5)
+                return;
             
             var image = (Bitmap)clonedImage;
             var stopwatch = new Stopwatch();
@@ -139,11 +142,13 @@ namespace RSTests
                 var singleResultException = new List<int>
                 {
                     errorMeasureValue,
+                    (int)ErrorProviderType.PercentageOfErrors,
                     correctionBytesCount,
                     (int)decoderType,
                     0,
                     0,
-                    0
+                    0,
+                    orderNo
                 };
 
                 _results.TryAdd(singleResultException);
@@ -153,11 +158,13 @@ namespace RSTests
             var singleResult = new List<int>
             {
                 errorMeasureValue,
+                (int)ErrorProviderType.PercentageOfErrors,
                 correctionBytesCount,
                 (int)decoderType,
                 errorsCount,
                 (int) stopwatch.ElapsedMilliseconds,
-                diffCount
+                diffCount,
+                orderNo
             };
             _results.TryAdd(singleResult);
         }
@@ -166,11 +173,11 @@ namespace RSTests
         {
             var resultFileName = string.Format(@"{0}/TimeTests{1}", Folder, CsvExtension);
             var fs = new StreamWriter(resultFileName, false);
-            fs.WriteLine("ErrorsPercentage;CorrectionBytesCount;RsDecoderType(0-Simple, 1-Extended);ProvidedErrorsCount;ErrorsAfterDecoding;Time [ms]");
+            fs.WriteLine("OrderNo;ErrorsValue;ErrorProviderType;CorrectionBytesCount;DecoderType;ProvidedErrorsCount;ErrorsAfterDecoding;Time [ms];FileSize [pix]");
 
             foreach (var result in _results.ToArray())
             {
-                var s = string.Format(@"{0};{1};{2};{3};{4};{5}", result[0], result[1], result[2], result[3], result[5], result[4]);
+                var s = string.Format(@"{7};{0:0.##};{1};{2};{3};{4};{5};{6};{8}", result[1] == (int)ErrorProviderType.ErrorsWithProbability ? (double)result[0] / 100 : result[0], (ErrorProviderType)result[1], result[2], (DecoderType)result[3], result[4], result[6], result[5], result[7], _fileSize);
                 fs.WriteLine(s);
             }
             fs.Close();
