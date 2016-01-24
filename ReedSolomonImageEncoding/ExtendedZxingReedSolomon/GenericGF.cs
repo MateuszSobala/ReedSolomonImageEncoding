@@ -196,6 +196,15 @@ namespace ExtendedZxingReedSolomon
             get { return generatorBase; }
         }
 
+        public int divide(int a, int b)
+        {
+            if (a == 0 || b == 0)
+            {
+                return 0;
+            }
+            return expTable[(logTable[a] - logTable[b]) % (size - 1)];
+        }
+
         /// <summary>
         /// Returns a <see cref="System.String"/> that represents this instance.
         /// </summary>

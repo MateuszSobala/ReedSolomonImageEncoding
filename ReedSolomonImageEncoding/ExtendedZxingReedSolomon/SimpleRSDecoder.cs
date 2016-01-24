@@ -56,61 +56,108 @@ namespace ExtendedZxingReedSolomon
             var errorsCorrected = false;
             var generator = BuildGenerator(ecBytes);
             var count = 0;
-            var temp = new int[received.Length];
-            var tempInfo = new GenericGFPoly(_field, temp);
-            var remainder = new GenericGFPoly(_field, new int[ecBytes]);
-            var first = received[0];
+            GenericGFPoly remainder = null;
+            var iteratorTemp = new int[received.Length];
+            Array.Copy(received, iteratorTemp, received.Length);
+            var tempInfo = new GenericGFPoly(_field, iteratorTemp);
 
-            while (count < dataBytes)
+            while (count <= dataBytes)
             {
-                Array.Copy(received, count, temp, 0, received.Length - count);
-                Array.Copy(received, 0, temp, received.Length - count, count);
-
-                tempInfo = new GenericGFPoly(_field, temp);
-
-                if (errorsCorrected && count==1)
-                {
-                    break;
-                }
-
                 remainder = tempInfo.divide(generator)[1];
 
-                if (errorsCorrected)
-                {
-                    break;
-                }
-
-                if (remainder.Coefficients.Count() <= ecBytes / 2)
+                if (remainder.Coefficients.Count(coeff => coeff != 0) <= ecBytes / 2)
                 {
                     errorsCorrected = true;
+                    break;
                 }
 
                 count++;
+                Array.Copy(received, 0, iteratorTemp, count, received.Length - count);
+                Array.Copy(received, received.Length - count, iteratorTemp, 0, count);
+                tempInfo = new GenericGFPoly(_field, iteratorTemp);
             }
 
             if (!errorsCorrected)
             {
                 return false;
             }
-
-            var correctedInfo = tempInfo.addOrSubtract(remainder);
-            temp = correctedInfo.Coefficients;
-
-            if (temp.Length < count)
-                return true;
-
-            var zeros = 0;
-            for (int i = count; i < received.Length; i++)
+            if (count == 0)
             {
-                if(received[i]>0)
-                    break;
-                zeros++;
+                return true;
             }
 
-            Array.Copy(temp, temp.Length - count, received, count > 1 ? 1 : 0, count > 1 ? count - 1 : count);
-            Array.Copy(temp, 0, received, count + zeros, temp.Length - count - zeros);
-            if (count > 1)
-                received[0] = first;
+            var correctedInfo = tempInfo.addOrSubtract(remainder);
+
+            var missingZerosCorrection = received.Length - correctedInfo.Coefficients.Length;
+            correctedInfo = correctedInfo.multiplyByMonomial(missingZerosCorrection, 1);
+            correctedInfo = correctedInfo.shiftLeft(count - missingZerosCorrection);
+
+            missingZerosCorrection = received.Length - correctedInfo.Coefficients.Length;
+            correctedInfo = correctedInfo.multiplyByMonomial(missingZerosCorrection, 1);
+
+            Array.Copy(correctedInfo.Coefficients, 0, received, missingZerosCorrection, correctedInfo.Coefficients.Length - missingZerosCorrection);
+            Array.Copy(correctedInfo.Coefficients, correctedInfo.Coefficients.Length - missingZerosCorrection, received, 0, missingZerosCorrection);
+
+            return true;
+        }
+
+        public bool LongDecode(int[] received, int ecBytes)
+        {
+            if (ecBytes == 0)
+            {
+                throw new ArgumentException("No error correction bytes");
+            }
+
+            var dataBytes = received.Length - ecBytes;
+            if (dataBytes <= 0)
+            {
+                throw new ArgumentException("No data bytes provided");
+            }
+
+            var errorsCorrected = false;
+            var generator = BuildGenerator(ecBytes);
+            var count = 0;
+            GenericGFPoly remainder = null;
+            var iteratorTemp = new int[received.Length];
+            Array.Copy(received, 0, iteratorTemp, 0, received.Length);
+            var tempInfo = new GenericGFPoly(_field, iteratorTemp);
+
+            while (count <= dataBytes)
+            {
+                remainder = tempInfo.longDivide(generator)[1];
+
+                if (remainder.Coefficients.Count(coeff => coeff != 0) <= ecBytes / 2)
+                {
+                    errorsCorrected = true;
+                    break;
+                }
+
+                count++;
+                Array.Copy(received, 0, iteratorTemp, count, received.Length - count);
+                Array.Copy(received, received.Length - count, iteratorTemp, 0, count);
+                tempInfo = new GenericGFPoly(_field, iteratorTemp);
+            }
+
+            if (!errorsCorrected)
+            {
+                return false;
+            }
+            if (count == 0)
+            {
+                return true;
+            }
+
+            var correctedInfo = tempInfo.addOrSubtract(remainder);
+
+            var missingZerosCorrection = received.Length - correctedInfo.Coefficients.Length;
+            correctedInfo = correctedInfo.multiplyByMonomial(missingZerosCorrection, 1);
+            correctedInfo = correctedInfo.shiftLeft(count - missingZerosCorrection);
+
+            missingZerosCorrection = received.Length - correctedInfo.Coefficients.Length;
+            correctedInfo = correctedInfo.multiplyByMonomial(missingZerosCorrection, 1);
+
+            Array.Copy(correctedInfo.Coefficients, 0, received, missingZerosCorrection, correctedInfo.Coefficients.Length - missingZerosCorrection);
+            Array.Copy(correctedInfo.Coefficients, correctedInfo.Coefficients.Length - missingZerosCorrection, received, 0, missingZerosCorrection);
 
             return true;
         }

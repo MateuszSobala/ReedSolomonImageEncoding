@@ -77,6 +77,16 @@ namespace ReedSolomonImageEncoding
             }
         }
 
+        private void radioButton5_CheckedChanged_1(object sender, EventArgs e)
+        {
+            if (radioButton5.Checked)
+            {
+                label3.Text = radioButton5.Text + ":";
+                textBox3.Text = 16.ToString();
+                _errorMeasure = ErrorMeasure.ErrorGroupCountPerBlock;
+            }
+        }
+
         private void button1_Click(object sender, EventArgs e)
         {
             openFileDialog1.ShowDialog();
@@ -128,7 +138,7 @@ namespace ReedSolomonImageEncoding
             Bitmap diffImage;
 
             var diffCount = ImageProcessing.Compare(_processedImage, _originalImage, out diffImage);
-            if (diffCount < 10)
+            if (diffCount == 0)
             {
                 comparisonText.Append("Obrazki są identyczne.");
                 pictureBox3.Visible = false;
@@ -227,6 +237,9 @@ namespace ReedSolomonImageEncoding
                 case ErrorMeasure.ErrorProbability:
                     errorsCount = ErrorProvider.FillInErrorsWithProbability(data, errorMeasureValue);
                     break;
+                case ErrorMeasure.ErrorGroupCountPerBlock:
+                    errorsCount = ErrorProvider.FillInGroupErrorsForEveryBlock(data, (int)errorMeasureValue, blockSize);
+                    break;
             }
 
             return errorsCount;
@@ -290,7 +303,7 @@ namespace ReedSolomonImageEncoding
             var comparisonText = new StringBuilder();
             Bitmap diffImage;
             var diffCount = ImageProcessing.Compare(_processedSimpleImage, _originalImage, out diffImage);
-            if (diffCount < 10)
+            if (diffCount == 0)
             {
                 comparisonText.Append("Obrazki są identyczne.");
                 pictureBox4.Visible = false;

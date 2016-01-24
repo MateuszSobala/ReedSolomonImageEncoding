@@ -19,7 +19,6 @@ namespace RSTests
         {
             "multicolor",
             "whiteSquare",
-            "graySquare",
             "lenaColor",
             "lenaGray"
         };
@@ -31,12 +30,12 @@ namespace RSTests
         private readonly IList<Params> _paramses = new List<Params>();
         private readonly IList<int> _errorMeasureValues = new List<int>
         {
-            1, 2, 5, 10, 16
+            1, 2, 5, 10, 16, 20
         };
 
         private readonly IList<int> _correctionBytesCounts = new List<int>
         {
-            10, 16, 24, 32
+            10, 16, 24, 32, 40
         };
         private readonly IList<ErrorProviderType> _errorProviderTypes = new List<ErrorProviderType>
         {
@@ -118,7 +117,7 @@ namespace RSTests
             var decoderType = parms.RsDecoderType;
             var errorProviderType = parms.RsErrorProviderType;
             var orderNo = parms.OrderNo;
-            const int blockSize = 256;
+            const int blockSize = 255;
             var tries = 0;
 
             object clonedImage = null;

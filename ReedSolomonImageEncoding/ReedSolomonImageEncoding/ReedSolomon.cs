@@ -18,7 +18,7 @@ namespace ReedSolomonImageEncoding
         public ReedSolomon()
         {
             var galoisField = GenericGF.DATA_MATRIX_FIELD_256;
-            _messageLength = galoisField.Size;
+            _messageLength = galoisField.Size - 1;
             _correctionLength = 32;
             _informationLength = _messageLength - _correctionLength;
             _reedSolomonEncoder = new ReedSolomonEncoder(galoisField);
@@ -29,7 +29,7 @@ namespace ReedSolomonImageEncoding
         public ReedSolomon(int correctionBytes)
         {
             var galoisField = GenericGF.DATA_MATRIX_FIELD_256;
-            _messageLength = galoisField.Size;
+            _messageLength = galoisField.Size - 1;
             _correctionLength = correctionBytes;
             _informationLength = _messageLength - _correctionLength;
             _reedSolomonEncoder = new ReedSolomonEncoder(galoisField);
@@ -39,7 +39,7 @@ namespace ReedSolomonImageEncoding
 
         public ReedSolomon(GenericGF galoisField, int correctionBytes)
         {
-            _messageLength = galoisField.Size;
+            _messageLength = galoisField.Size - 1;
             _correctionLength = correctionBytes;
             _informationLength = _messageLength - _correctionLength;
             _reedSolomonEncoder = new ReedSolomonEncoder(galoisField);
@@ -50,7 +50,8 @@ namespace ReedSolomonImageEncoding
         public int[] EncodeRawBytesArray(int[] data)
         {
             var length = data.Length*_messageLength/_informationLength;
-            length += 256 - (length%256);
+            length += (255 - (length%255))%255;
+
             var modifiedData = new int[length];
             var processedBytes = 0;
 

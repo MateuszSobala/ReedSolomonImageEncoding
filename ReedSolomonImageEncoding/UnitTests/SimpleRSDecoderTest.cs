@@ -1,5 +1,6 @@
 ﻿using ReedSolomonImageEncoding;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -15,9 +16,9 @@ namespace UnitTests
         public void ProperlyDecodesNoErrorMessage()
         {
             var reedSolomon = new ReedSolomon(32);
-            var data = new int[224];
+            var data = new int[223];
 
-            for (var i = 0; i < 224; i++)
+            for (var i = 0; i < 223; i++)
             {
                 data[i] = i+10;
             }
@@ -30,7 +31,7 @@ namespace UnitTests
 
             Assert.IsTrue(response);
 
-            for (var i = 0; i < 224; i++)
+            for (var i = 0; i < 223; i++)
             {
                 Assert.AreEqual(data[i], modifiedData[i]);
             }
@@ -40,9 +41,9 @@ namespace UnitTests
         public void ProperlyFindsErrorInAMessage()
         {
             var reedSolomon = new ReedSolomon(32);
-            var data = new int[224];
+            var data = new int[223];
 
-            for (var i = 0; i < 224; i++)
+            for (var i = 0; i < 223; i++)
             {
                 data[i] = i+10;
             }
@@ -64,10 +65,10 @@ namespace UnitTests
         [TestMethod]
         public void ProperlyCorrectsErrorInAMessage()
         {
-            var reedSolomon = new ReedSolomon();
-            var data = new int[224];
+            var reedSolomon = new ReedSolomon(16);
+            var data = new int[223];
 
-            for (var i = 0; i < 224; i++)
+            for (var i = 0; i < 223; i++)
             {
                 data[i] = i + 10;
             }
@@ -78,11 +79,11 @@ namespace UnitTests
 
             var simpleDecoder = new SimpleRSDecoder(GenericGF.DATA_MATRIX_FIELD_256);
 
-            var response = simpleDecoder.Decode(modifiedData, 32);
+            var response = simpleDecoder.Decode(modifiedData, 16);
 
             Assert.IsTrue(response);
 
-            for (var i = 0; i < 224; i++)
+            for (var i = 0; i < 223; i++)
             {
                 Assert.AreEqual(data[i], modifiedData[i]);
             }
@@ -92,9 +93,9 @@ namespace UnitTests
         public void ProperlyCorrectsErrorInAMessage2()
         {
             var reedSolomon = new ReedSolomon();
-            var data = new int[224];
+            var data = new int[223];
 
-            for (var i = 0; i < 224; i++)
+            for (var i = 0; i < 223; i++)
             {
                 data[i] = i + 10;
             }
@@ -109,7 +110,7 @@ namespace UnitTests
 
             Assert.IsTrue(response);
 
-            for (var i = 0; i < 224; i++)
+            for (var i = 0; i < 223; i++)
             {
                 Assert.AreEqual(data[i], modifiedData[i]);
             }
@@ -119,9 +120,9 @@ namespace UnitTests
         public void ProperlyCorrectsErrorInAMessage3()
         {
             var reedSolomon = new ReedSolomon();
-            var data = new int[224];
+            var data = new int[223];
 
-            for (var i = 0; i < 224; i++)
+            for (var i = 0; i < 223; i++)
             {
                 data[i] = i + 15;
             }
@@ -136,7 +137,7 @@ namespace UnitTests
 
             Assert.IsTrue(response);
 
-            for (var i = 0; i < 224; i++)
+            for (var i = 0; i < 223; i++)
             {
                 Assert.AreEqual(data[i], modifiedData[i]);
             }
@@ -146,16 +147,17 @@ namespace UnitTests
         public void ProperlyCorrectsErrorInAMessage4()
         {
             var reedSolomon = new ReedSolomon();
-            var data = new int[224];
+            var data = new int[223];
 
-            for (var i = 0; i < 224; i++)
+            for (var i = 0; i < 223; i++)
             {
                 data[i] = ((i + 50) % 255) + 1;
             }
 
             var modifiedData = reedSolomon.EncodeRawBytesArray(data);
 
-            modifiedData[2] = 222;
+            modifiedData[1] = 1;
+            modifiedData[15] = 16;
 
             var simpleDecoder = new SimpleRSDecoder(GenericGF.DATA_MATRIX_FIELD_256);
 
@@ -163,10 +165,33 @@ namespace UnitTests
 
             Assert.IsTrue(response);
 
-            for (var i = 0; i < 224; i++)
+            for (var i = 0; i < 223; i++)
             {
                 Assert.AreEqual(data[i], modifiedData[i]);
             }
+        }
+
+        [TestMethod]
+        public void ProperlyNotCorrectsErrorInAMessage5()
+        {
+            var reedSolomon = new ReedSolomon();
+            var data = new int[223];
+
+            for (var i = 0; i < 223; i++)
+            {
+                data[i] = ((i + 50) % 255) + 1;
+            }
+
+            var modifiedData = reedSolomon.EncodeRawBytesArray(data);
+
+            modifiedData[0] = 0;
+            modifiedData[170] = 170;
+
+            var simpleDecoder = new SimpleRSDecoder(GenericGF.DATA_MATRIX_FIELD_256);
+
+            var response = simpleDecoder.Decode(modifiedData, 32);
+
+            Assert.IsFalse(response);
         }
 
         [TestMethod]
@@ -177,9 +202,9 @@ namespace UnitTests
             for (var j = 0; j < 10;)
             {
                 var reedSolomon = new ReedSolomon();
-                var data = new int[224];
+                var data = new int[223];
 
-                for (var i = 0; i < 224; i++)
+                for (var i = 0; i < 223; i++)
                 {
                     data[i] = random.Next(1,255);
                 }
@@ -196,7 +221,7 @@ namespace UnitTests
                 if (response)
                 {
                     j++;
-                    for (var i = 0; i < 224; i++)
+                    for (var i = 0; i < 223; i++)
                     {
                         Assert.AreEqual(data[i], modifiedData[i]);
                     }
@@ -208,9 +233,9 @@ namespace UnitTests
         public void ProperlyCorrects2ErrorsInAMessage()
         {
             var reedSolomon = new ReedSolomon();
-            var data = new int[224];
+            var data = new int[223];
 
-            for (var i = 0; i < 224; i++)
+            for (var i = 0; i < 223; i++)
             {
                 data[i] = i + 10;
             }
@@ -226,7 +251,7 @@ namespace UnitTests
 
             Assert.IsTrue(response);
 
-            for (var i = 0; i < 224; i++)
+            for (var i = 0; i < 223; i++)
             {
                 Assert.AreEqual(data[i], modifiedData[i]);
             }
@@ -236,9 +261,9 @@ namespace UnitTests
         public void ProperlyCorrects3ErrorsInAMessage()
         {
             var reedSolomon = new ReedSolomon();
-            var data = new int[224];
+            var data = new int[223];
 
-            for (var i = 0; i < 224; i++)
+            for (var i = 0; i < 223; i++)
             {
                 data[i] = i + 10;
             }
@@ -255,7 +280,7 @@ namespace UnitTests
 
             Assert.IsTrue(response);
 
-            for (var i = 0; i < 224; i++)
+            for (var i = 0; i < 223; i++)
             {
                 Assert.AreEqual(data[i], modifiedData[i]);
             }
@@ -265,9 +290,9 @@ namespace UnitTests
         public void ProperlyCorrects5ErrorsInAMessage()
         {
             var reedSolomon = new ReedSolomon();
-            var data = new int[224];
+            var data = new int[223];
 
-            for (var i = 0; i < 224; i++)
+            for (var i = 0; i < 223; i++)
             {
                 data[i] = i + 10;
             }
@@ -285,7 +310,67 @@ namespace UnitTests
 
             Assert.IsTrue(response);
 
-            for (var i = 0; i < 224; i++)
+            for (var i = 0; i < 223; i++)
+            {
+                Assert.AreEqual(data[i], modifiedData[i]);
+            }
+        }
+
+        [TestMethod]
+        public void ProperlyCorrects2WithZerosErrorsInAMessage()
+        {
+            var reedSolomon = new ReedSolomon();
+            var data = new int[223];
+
+            for (var i = 0; i < 223; i++)
+            {
+                data[i] = i;
+            }
+
+            var modifiedData = reedSolomon.EncodeRawBytesArray(data);
+
+            for (var i = 1; i < 3; i++)
+            {
+                modifiedData[i] += 100;
+            }
+
+            var simpleDecoder = new SimpleRSDecoder(GenericGF.DATA_MATRIX_FIELD_256);
+
+            var response = simpleDecoder.Decode(modifiedData, 32);
+
+            Assert.IsTrue(response);
+
+            for (var i = 0; i < 223; i++)
+            {
+                Assert.AreEqual(data[i], modifiedData[i]);
+            }
+        }
+
+        [TestMethod]
+        public void ProperlyCorrects2WithZerosErrorsInAMessage2()
+        {
+            var reedSolomon = new ReedSolomon();
+            var data = new int[223];
+
+            for (var i = 0; i < 223; i++)
+            {
+                data[i] = i;
+            }
+
+            var modifiedData = reedSolomon.EncodeRawBytesArray(data);
+
+            for (var i = 0; i < 2; i++)
+            {
+                modifiedData[i] += 100;
+            }
+
+            var simpleDecoder = new SimpleRSDecoder(GenericGF.DATA_MATRIX_FIELD_256);
+
+            var response = simpleDecoder.Decode(modifiedData, 32);
+
+            Assert.IsTrue(response);
+
+            for (var i = 0; i < 223; i++)
             {
                 Assert.AreEqual(data[i], modifiedData[i]);
             }
@@ -295,9 +380,9 @@ namespace UnitTests
         public void ProperlyCorrects2FarErrorsInAMessage()
         {
             var reedSolomon = new ReedSolomon();
-            var data = new int[224];
+            var data = new int[223];
 
-            for (var i = 0; i < 224; i++)
+            for (var i = 0; i < 223; i++)
             {
                 data[i] = i + 10;
             }
@@ -313,7 +398,7 @@ namespace UnitTests
 
             Assert.IsTrue(response);
 
-            for (var i = 0; i < 224; i++)
+            for (var i = 0; i < 223; i++)
             {
                 Assert.AreEqual(data[i], modifiedData[i]);
             }
@@ -327,9 +412,9 @@ namespace UnitTests
             for (var j = 0; j < 5; )
             {
                 var reedSolomon = new ReedSolomon();
-                var data = new int[224];
+                var data = new int[223];
 
-                for (var i = 0; i < 224; i++)
+                for (var i = 0; i < 223; i++)
                 {
                     data[i] = random.Next(1, 255);
                 }
@@ -345,28 +430,76 @@ namespace UnitTests
                 modifiedData[modifIndex] = modifValue;
 
                 var modifIndex2 = random.Next(255);
-                modifValue = random.Next(255);
+                var modifValue2 = random.Next(255);
                 while (modifIndex == modifIndex2)
                 {
                     modifIndex2 = random.Next(255);
                 }
-                while (modifValue == modifiedData[modifIndex2])
+                while (modifValue2 == modifiedData[modifIndex2])
                 {
-                    modifValue = random.Next(255);
+                    modifValue2 = random.Next(255);
                 }
-                modifiedData[modifIndex2] = modifValue;
+                modifiedData[modifIndex2] = modifValue2;
 
                 var simpleDecoder = new SimpleRSDecoder(GenericGF.DATA_MATRIX_FIELD_256);
 
                 var response = simpleDecoder.Decode(modifiedData, 32);
 
+                var bytesDiffCount = GetDiffTable(data, modifiedData, 223);
+
+                Assert.IsTrue(bytesDiffCount.Count <= 2);
                 if (response)
                 {
                     j++;
-                    for (var i = 0; i < 224; i++)
+                    for (var i = 0; i < 223; i++)
                     {
                         Assert.AreEqual(data[i], modifiedData[i]);
                     }
+                }
+            }
+        }
+
+        [TestMethod]
+        public void ProperlyCorrectsUpto16ErrorsInAMessageLoop()
+        {
+            var random = new Random(1);
+
+            for (var j = 0; j < 17; j++)
+            {
+                var reedSolomon = new ReedSolomon();
+                var data = new int[223];
+
+                for (var i = 0; i < 223; i++)
+                {
+                    data[i] = random.Next(255);
+                }
+
+                var modifiedData = reedSolomon.EncodeRawBytesArray(data);
+                var errorCount = 0;
+
+                var startIndex = random.Next(0,255-16);
+                for (var k = startIndex; k < startIndex + j; k++)
+                {
+                    var modifValue = random.Next(255);
+                    while (modifValue == modifiedData[k])
+                    {
+                        modifValue = random.Next(255);
+                    }
+                    modifiedData[k] = modifValue;
+                    errorCount++;
+                }
+
+                var simpleDecoder = new SimpleRSDecoder(GenericGF.DATA_MATRIX_FIELD_256);
+
+                var response = simpleDecoder.Decode(modifiedData, 32);
+
+                var bytesDiffCount = GetDiffTable(data, modifiedData, 223);
+
+                Assert.IsTrue(bytesDiffCount.Count <= errorCount);
+                
+                for (var i = 0; i < 223; i++)
+                {
+                    Assert.AreEqual(data[i], modifiedData[i]);
                 }
             }
         }
@@ -382,8 +515,11 @@ namespace UnitTests
             }
             fileStream.Close();
 
-            var reedSolomon = new ReedSolomon(24);
+            var reedSolomon = new ReedSolomon(32);
             var data = ImageProcessing.GetRawBytesFromRGBImage(originalImage);
+
+            var originalData = new int[data.Length];
+            Array.Copy(data, originalData, data.Length);
 
             var modifiedData = reedSolomon.EncodeRawBytesArray(data);
 
@@ -397,7 +533,87 @@ namespace UnitTests
             Bitmap diffImage;
             diffCount = ImageProcessing.Compare(processedImage, originalImage, out diffImage);
 
+            var bytesDiffCount = GetDiffTable(originalData, data);
+
+            Assert.IsTrue(bytesDiffCount.Count <= errorsCount);
             Assert.IsTrue(diffCount <= errorsCount);
+        }
+
+        [TestMethod]
+        public void ImageDecodingBlockErrorsTest()
+        {
+            Bitmap originalImage;
+            var fileStream = new FileStream(AppDomain.CurrentDomain.BaseDirectory + "/sandwich.bmp", FileMode.Open, FileAccess.Read);
+            using (fileStream)
+            {
+                originalImage = new Bitmap(fileStream);
+            }
+            fileStream.Close();
+
+            var reedSolomon = new ReedSolomon(32);
+            var data = ImageProcessing.GetRawBytesFromRGBImage(originalImage);
+
+            var originalData = new int[data.Length];
+            Array.Copy(data, originalData, data.Length);
+
+            var modifiedData = reedSolomon.EncodeRawBytesArray(data);
+
+            var errorsCount = ErrorProvider.FillInGroupErrorsForEveryBlock(modifiedData, 16, 255);
+
+            reedSolomon.SimplyDecodeRawBytesArray(modifiedData, data);
+
+            var processedImage = ImageProcessing.GetRGBImageFromRawBytes(originalImage, data);
+
+            Bitmap diffImage;
+            var diffCount = ImageProcessing.Compare(processedImage, originalImage, out diffImage);
+
+            var bytesDiffCount = GetDiffTable(originalData, data);
+
+            Assert.AreEqual(0, bytesDiffCount.Count);
+            Assert.AreEqual(0, diffCount);
+        }
+
+        private static List<List<int>> GetDiffTable(int[] original, int[] modified, int? length = null)
+        {
+            var result = new List<List<int>>();
+            for (var i = 0; i < (length ?? original.Length); i++)
+            {
+                if (original[i] != modified[i])
+                {
+                    var error = new List<int> {i, original[i], modified[i]};
+                    result.Add(error);
+                }
+            }
+
+            return result;
+        }
+
+        [TestMethod]
+        public void LongDivideProperlyCorrectsErrorInAMessage4()
+        {
+            var reedSolomon = new ReedSolomon();
+            var data = new int[223];
+
+            for (var i = 0; i < 223; i++)
+            {
+                data[i] = ((i + 50) % 255) + 1;
+            }
+
+            var modifiedData = reedSolomon.EncodeRawBytesArray(data);
+
+            modifiedData[0] = 1;
+            modifiedData[15] = 16;
+
+            var simpleDecoder = new SimpleRSDecoder(GenericGF.DATA_MATRIX_FIELD_256);
+
+            var response = simpleDecoder.LongDecode(modifiedData, 32);
+
+            Assert.IsTrue(response);
+
+            for (var i = 0; i < 223; i++)
+            {
+                Assert.AreEqual(data[i], modifiedData[i]);
+            }
         }
     }
 }

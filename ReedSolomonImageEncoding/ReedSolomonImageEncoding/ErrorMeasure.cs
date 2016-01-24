@@ -6,6 +6,7 @@
         ErrorPercentage,
         ErrorCount,
         ErrorCountPerBlock,
-        ErrorProbability
+        ErrorProbability,
+        ErrorGroupCountPerBlock
     }
 }

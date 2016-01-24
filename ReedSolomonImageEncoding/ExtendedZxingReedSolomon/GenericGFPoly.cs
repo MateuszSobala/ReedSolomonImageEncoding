@@ -274,6 +274,80 @@ namespace ExtendedZxingReedSolomon
             return new GenericGFPoly[] { quotient, remainder };
         }
 
+        internal GenericGFPoly shiftRight(int degree)
+        {
+            if (degree < 0)
+            {
+                throw new ArgumentException();
+            }
+            var size = coefficients.Length;
+            var product = new int[size];
+
+            for (var i = 0; i < size-degree; i++)
+            {
+                product[i + degree] = field.multiply(coefficients[i], 1);
+            }
+            for (var i = size - degree; i < size; i++)
+            {
+                product[i - (size - degree)] = field.multiply(coefficients[i], 1);
+            }
+            return new GenericGFPoly(field, product);
+        }
+
+        internal GenericGFPoly shiftLeft(int degree)
+        {
+            if (degree < 0)
+            {
+                throw new ArgumentException();
+            }
+            var size = coefficients.Length;
+            var product = new int[size];
+
+            for (var i = 0; i < size - degree; i++)
+            {
+                product[i] = field.multiply(coefficients[i + degree], 1);
+            }
+            for (var i = size - degree; i < size; i++)
+            {
+                product[i] = field.multiply(coefficients[i - (size - degree)], 1);
+            }
+            return new GenericGFPoly(field, product);
+        }
+
+        internal GenericGFPoly[] longDivide(GenericGFPoly other)
+        {
+            if (!field.Equals(other.field))
+            {
+                throw new ArgumentException("GenericGFPolys do not have same GenericGF field");
+            }
+            if (other.isZero)
+            {
+                throw new ArgumentException("Divide by 0");
+            }
+
+            var quotient = field.Zero;
+            var remainder = this;
+
+            while (remainder.Degree >= other.Degree)
+            {
+                var degreeDifference = remainder.Degree - other.Degree;
+                var shifted = other.multiplyByMonomial(degreeDifference, 1);
+
+                var resultOfSingleDivide = field.divide(remainder.getCoefficient(remainder.Degree),
+                    shifted.getCoefficient(shifted.Degree));
+
+                var iterationQuotient = new GenericGFPoly(field, new[] { resultOfSingleDivide });
+                iterationQuotient = iterationQuotient.multiplyByMonomial(degreeDifference, 1);
+                quotient = quotient.addOrSubtract(iterationQuotient);
+
+                shifted = shifted.multiply(resultOfSingleDivide);
+
+                remainder = remainder.addOrSubtract(shifted);
+            }
+
+            return new [] { quotient, remainder };
+        }
+
         public override String ToString()
         {
             StringBuilder result = new StringBuilder(8 * Degree);
